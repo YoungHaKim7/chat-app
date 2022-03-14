@@ -15,7 +15,7 @@ body,
 main {
   background-color: var(--bg-dark);
   color: #fff;
-  font-family: Arial, Helvetica, sans-serif, "Noto Color Emoji";
+  font-family: "Inter", Arial, Helvetica, sans-serif, "Noto Color Emoji";
   text-weight: 400;
   text-shadow: rgba(77, 81, 86) 0px 0px 0px;
   height: 100%;
@@ -161,11 +161,11 @@ form button {
   font-size: 12px;
 }
 
-#status.peding::before {
+#status.pending::before {
   content: "status : connected";
 }
 
-#status.peding {
+#status.pending {
   background-color: yellow;
   color: #000;
 }

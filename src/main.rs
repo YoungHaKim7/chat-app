@@ -4,15 +4,16 @@ extern crate rocket;
 #[cfg(test)]
 mod tests;
 
-use rocket::outcome::Outcome;
+use rocket::form::Form;
+use rocket::fs::{relative, FileServer};
 use rocket::response::stream::{Event, EventStream};
 use rocket::serde::{Deserialize, Serialize};
-use rocket::tokio::sync::broadcast::{channel, Sender};
-use rocket::{routes, Shutdown, State};
-use std::sync::mpsc::Sender;
-use rocket::fs::{relative, FilesServer};
+use rocket::tokio::select;
+use rocket::tokio::sync::broadcast::{channel, error::RecvError, Sender};
+use rocket::{Shutdown, State};
 
 #[derive(Debug, Clone, FromForm, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq, UriDisplayQuery))]
 #[serde(crate = "rocket::serde")]
 struct Message {
     #[field(validate = len(..30))]
@@ -22,13 +23,7 @@ struct Message {
     pub message: String,
 }
 
-#[post("/message", data = "<form>")]
-// A send 'fails' if there are no active subscribers. That's okay.
-fn post(form: Form<Message>, queue: &State<Sender<Message>>) {
-    let _res = queue.send(form.into_inner());
-}
-
-#[get("/event")]
+#[get("/events")]
 async fn events(queue: &State<Sender<Message>>, mut end: Shutdown) -> EventStream![] {
     let mut rx = queue.subscribe();
 
@@ -42,10 +37,16 @@ async fn events(queue: &State<Sender<Message>>, mut end: Shutdown) -> EventStrea
                 },
                 _ = &mut end => break,
             };
+        yield Event::json(&msg);
         }
 
-        yield Event::json(&msg);
     }
+}
+
+#[post("/message", data = "<form>")]
+// A send 'fails' if there are no active subscribers. That's okay.
+fn post(form: Form<Message>, queue: &State<Sender<Message>>) {
+    let _res = queue.send(form.into_inner());
 }
 
 #[launch]
@@ -53,5 +54,5 @@ fn rocket() -> _ {
     rocket::build()
         .manage(channel::<Message>(1024).0)
         .mount("/", routes![post, events])
-        .mount("/", FilesServer::from(relative!("static")))
+        .mount("/", FileServer::from(relative!("static")))
 }

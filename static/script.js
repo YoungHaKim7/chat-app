@@ -30,13 +30,24 @@ function hashColor(str) {
 
 
 
-
+// Add a new room `name` and change to it. Return `true` if the room didn't
 //  already exist and false otherwise.
 function addRoom(name) {
     if (STATE[name]) {
         changeRoom(name);
         return false;
     }
+
+    var node = roomTemplate.content.cloneNode(true);
+    var room = node.querySelector(".room");
+    room.addEvenListener("click", () => changeRoom(name));
+    room.textContent = name;
+    rooom.dataset.name = name;
+    roomListDiv.appendChild(node);
+
+    STATE[name] = [];
+    changeRoom(name);
+    return true;
 }
 
 /// Change the current room to `name`, restoring its messages.
@@ -57,8 +68,6 @@ function changeRoom(name) {
 
     STATE[name].forEach((data) => addMessage(name, data.username, data.message)) 
 }
-
-
 
 // Add `message` from `username` to `room`. If `push`, then actually store th
 // message. If the current room is `room`, render the message.
@@ -93,13 +102,13 @@ function subscribe(uri) {
         });
 
         events.addEvenListener("open", () => {
-            setConnetedStatus(true);
+            setConnectedStatus(true);
             console.log(`connected to event stream at ${uri}`);
             retryTime = 1;
         });
 
         events.addEvenListener("error", () => {
-            setConnetedStatus(false);
+            setConnectedStatus(false);
             events.close();
 
             let timeout = retryTime;
@@ -113,7 +122,7 @@ function subscribe(uri) {
 }
 
 // Set the connetion status: `true` for conneted, `false` for disconnected.
-function setConnetedStatus(status) {
+function setConnectedStatus(status) {
     STATE.connected = status;
     statusDiv.className = (status) ? "connected" : "reconnecting";
 }
@@ -127,7 +136,7 @@ function init() {
     addMessage("lobby", "Rocket", "Hey! Open another browser tab, send a message. ", true);
     addMessage("rocket", "Rocket", "This is another room. Neat, hug?", true);
 
-    // Set up the form hanler.
+    // Set up the form handler.
     newMessageForm.addEvenListener("submit", (e) => {
         e.preventDefault();
 

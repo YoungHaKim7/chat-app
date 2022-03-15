@@ -1,5 +1,20 @@
+#![feature(proc_macro_hygiene)]
+#![feature(decl_macro)]
+
 #[macro_use]
 extern crate rocket;
+#[macro_use]
+extern crate rocket_contrib;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+
+use rocket::http::{ContentType, Status};
+use rocket::request::Request;
+use rocket::response;
+use rocket::response::{Responder, Response};
+use rocket_contrib::json::{Json, JsonValue};
 
 #[cfg(test)]
 mod tests;
@@ -21,6 +36,21 @@ struct Message {
     #[field(validate = len(..20))]
     pub username: String,
     pub message: String,
+}
+
+#[derive(Debug)]
+struct ApiResponse<T> {
+    json: Json<T>,
+    status: Status,
+}
+
+impl<'r, T: serde::Serialize> Responder<'r> for ApiResponse<T> {
+    fn respond_to(self, req: &Request) -> response::Result<'r> {
+        Response::build_from(self.json.respond_to(&req).unwrap())
+            .status(self.status)
+            .header(ContentType::JSON)
+            .ok()
+    }
 }
 
 #[get("/events")]
@@ -49,8 +79,23 @@ fn post(form: Form<Message>, queue: &State<Sender<Message>>) {
     let _res = queue.send(form.into_inner());
 }
 
+#[post("/create/thing", format = "application/json", data = "<thing>")]
+fn put(thing: Json<Thing>) -> ApiResponse<Thing> {
+    match thing.name.len() {
+        0...3 => ApiResponse {
+            json: thing,
+            status: Status::UnprocessableEntity,
+        },
+        _ => ApiResponse {
+            json: thing,
+            status: Status::Ok,
+        },
+    }
+}
+
 #[launch]
 fn rocket() -> _ {
+    rocket::ignite().mount("/", routes![put]).launch();
     rocket::build()
         .manage(channel::<Message>(1024).0)
         .mount("/", routes![post, events])

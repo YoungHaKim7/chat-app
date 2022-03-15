@@ -15,7 +15,7 @@ body,
 main {
   background-color: var(--bg-dark);
   color: #fff;
-  font-family: "Inter", Arial, Helvetica, sans-serif, "Noto Color Emoji";
+  font-family: Arial, Helvetica, serif , "Noto Color Emoji";
   text-weight: 400;
   text-shadow: rgba(77, 81, 86) 0px 0px 0px;
   height: 100%;

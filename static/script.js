@@ -1,5 +1,5 @@
 let roomListDiv = document.getElementById('room-list');
-let messageDiv = document.getElementById('messages');
+let messagesDiv = document.getElementById('messages');
 let newMessageForm = document.getElementById('new-message');
 let newRoomForm = document.getElementById('new-room');
 let statusDiv = document.getElementById('status');
@@ -40,9 +40,9 @@ function addRoom(name) {
 
     var node = roomTemplate.content.cloneNode(true);
     var room = node.querySelector(".room");
-    room.addEvenListener("click", () => changeRoom(name));
+    room.addEventListener("click", () => changeRoom(name));
     room.textContent = name;
-    rooom.dataset.name = name;
+    room.dataset.name = name;
     roomListDiv.appendChild(node);
 
     STATE[name] = [];
@@ -62,8 +62,8 @@ function changeRoom(name) {
     oldRoom.classList.remove("active");
     newRoom.classList.add("active");
 
-    messageDiv.querySelectorAll(".message").forEach((msg) => {
-        messageDiv.removeChild(msg)
+    messagesDiv.querySelectorAll(".message").forEach((msg) => {
+        messagesDiv.removeChild(msg)
     });
 
     STATE[name].forEach((data) => addMessage(name, data.username, data.message)) 
@@ -82,7 +82,7 @@ function addMessage(room, username, message, push = false) {
         node.querySelector(".message . username").textContent = username;
         node.querySelector(".message . username").style.color = hashColor(username);
         node.querySelector(".message . text").textContent = message;
-        messageDiv.appendChild(node);
+        messagesDiv.appendChild(node);
     }
 }
 
@@ -93,7 +93,7 @@ function subscribe(uri) {
     function connect(uri) {
         const events = new EventSource(uri);
 
-        events.addEvenListener("message", (ev) => {
+        events.addEventListener("message", (ev) => {
             console.log("raw data", JSON.stringify(ev.data));
             console.log("decoded data", JSON.stringify(JSON.parse(ev.data)));
             const msg = JSON.parse(ev.data);
@@ -101,13 +101,13 @@ function subscribe(uri) {
             addMessage(msg.room, msg.username, msg.message, true);
         });
 
-        events.addEvenListener("open", () => {
+        events.addEventListener("open", () => {
             setConnectedStatus(true);
             console.log(`connected to event stream at ${uri}`);
             retryTime = 1;
         });
 
-        events.addEvenListener("error", () => {
+        events.addEventListener("error", () => {
             setConnectedStatus(false);
             events.close();
 
@@ -121,7 +121,7 @@ function subscribe(uri) {
     connect(uri);
 }
 
-// Set the connetion status: `true` for conneted, `false` for disconnected.
+// Set the connection status: `true` for connected, `false` for disconnected.
 function setConnectedStatus(status) {
     STATE.connected = status;
     statusDiv.className = (status) ? "connected" : "reconnecting";
@@ -137,7 +137,7 @@ function init() {
     addMessage("rocket", "Rocket", "This is another room. Neat, hug?", true);
 
     // Set up the form handler.
-    newMessageForm.addEvenListener("submit", (e) => {
+    newMessageForm.addEventListener("submit", (e) => {
         e.preventDefault();
 
         const room = STATE.room;

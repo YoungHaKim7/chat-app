@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
     <head>
         <title>Rocket Rooms</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="reset.css">
-        <link href="style.css" rel="stylesheet">
-        <script src="script.js" charset="utf-8"></script>
+        <link rel="stylesheet" href="reset.css"> 
+        <link rel="stylesheet" href="style.css">
+        <script src="/script.js" charset="utf-8" defer></script>
     </head>
     <body>
         <main>
@@ -14,12 +13,12 @@
                 <div id="status" class="pending"></div>
                 <div id="room-list">
                     <template id="room">
-                        <button type="room"></button>
+                        <button class="room"></button>
                     </template>
                 </div>
 
                 <form id="new-room">
-                    <input type="text" name="name" id="name" autocomplete="off" placeholder="new room..." maxlength="29"><input>
+                    <input type="text" name="name" id="name" autocomplete="off" placeholder="new room..." maxlength="29"></input>
                     <button type="submit">+</button>
                 </form>
             </div>

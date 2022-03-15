@@ -14,8 +14,7 @@ use rocket::serde::json;
 use super::*;
 
 async fn send_message<'c>(client: &'c Client, message: &Message) -> LocalResponse<'c> {
-    client
-        .post(uri!(post))
+    client.post(uri!(post))
         .header(ContentType::Form)
         .body((message as &dyn UriDisplay<Query>).to_string())
         .dispatch()
@@ -32,13 +31,13 @@ fn gen_string(len: Range<usize>) -> String {
 
 #[async_test]
 async fn messages() {
-    let clien = Client::tracked(rocket()).await.unwrap();
+    let client = Client::tracked(rocket()).await.unwrap();
     let start_barrier = syn::Barrier::new(2);
 
     let shutdown_message = Message {
         room: ":control".into(),
         username: ":control".into(),
-        message: ":control".into(),
+        message: ":shutdown".into(),
     };
 
     // Generate somewhere between 75 and 100 messages.
@@ -57,15 +56,15 @@ async fn messages() {
 
         // Send all of the messages.
         for message in &test_message {
-            send_message(&clien, message).await;
+            send_message(&client, message).await;
         }
 
         // Send the special "shutdown" message.
-        send_message(&clien, &shutdown_message).await;
+        send_message(&client, &shutdown_message).await;
     };
 
     let receive_message = async {
-        let response = client.get(uri!(event)).dispatch().await;
+        let response = client.get(uri!(events)).dispatch().await;
 
         // We have the response stream. Let the receiver know to start sending.
         start_barrier.wait().await;
